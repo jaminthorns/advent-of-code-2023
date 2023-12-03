@@ -62,8 +62,11 @@ defmodule Day2 do
   end
 
   defp fewest_counts(%{subsets: subsets}) do
-    max_merge = fn _key, a, b -> max(a, b) end
-    Enum.reduce(subsets, %{"red" => 0, "green" => 0, "blue" => 0}, &Map.merge(&1, &2, max_merge))
+    Enum.reduce(
+      subsets,
+      %{"red" => 0, "green" => 0, "blue" => 0},
+      &Map.merge(&1, &2, fn _key, a, b -> max(a, b) end)
+    )
   end
 
   defp power(numbers), do: Enum.reduce(numbers, &(&1 * &2))
