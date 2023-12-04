@@ -1,4 +1,4 @@
-defmodule Day4 do
+defmodule Solutions.Day4 do
   @behaviour Solution
 
   @test_input """

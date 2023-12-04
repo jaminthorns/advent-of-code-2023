@@ -1,4 +1,4 @@
-defmodule Day3 do
+defmodule Solutions.Day3 do
   @behaviour Solution
 
   @digits Enum.map(0..9, &to_string/1)

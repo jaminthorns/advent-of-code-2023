@@ -10,7 +10,7 @@ defmodule AllDaysTest do
   day = fn module ->
     module
     |> Module.split()
-    |> List.first()
+    |> List.last()
     |> String.replace_prefix("Day", "")
   end
 
