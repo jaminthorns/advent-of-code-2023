@@ -44,16 +44,44 @@ defmodule Solutions.Day6 do
   defp multiple(line), do: line |> String.split() |> Enum.map(&String.to_integer/1)
   defp single(line), do: line |> String.replace(" ", "") |> String.to_integer() |> List.wrap()
 
-  defp win_runs_count(race) do
-    race
-    |> runs()
-    |> Enum.filter(&breaks_record?(&1, race.record))
-    |> Enum.count()
+  defp win_runs_count(%{time: time, record: record}) do
+    # Find the hold times required to beat the record (there are always 2), beat
+    # the record by holding 1 ms more/less, and round backwards to the nearest
+    # millisecond.
+    first_win_hold_time = time |> hold_time(record, 1) |> Kernel.+(1) |> floor()
+    last_win_hold_time = time |> hold_time(record, -1) |> Kernel.+(-1) |> ceil()
+
+    last_win_hold_time - first_win_hold_time + 1
   end
 
-  defp runs(%{time: time}) do
-    Enum.map(0..time, &%{hold: &1, distance: &1 * (time - &1)})
+  # The distance our boat travels can be written as the equation:
+  #
+  #   distance = hold_time * (race_time - hold_time)
+  #
+  # Which can be rewritten into quadratic form like this:
+  #
+  #   distance = hold_time * (race_time - hold_time)
+  #   distance = -hold_time^2 + race_time * hold_time
+  #   0 = -hold_time^2 + race_time * hold_time - distance
+  #
+  # Remember the quadratic formula. For any equation:
+  #
+  #   0 = ax^2 + bx + c
+  #
+  # We can solve for x with:
+  #
+  #   x = (-b +- sqrt(b^2 - 4ac)) / 2a
+  #
+  # For our equation:
+  #
+  #   a = -1
+  #   b = race_time
+  #   c = -distance
+  #
+  # So the solution to our equation is:
+  #
+  #   hold_time = (-race_time +- sqrt(race_time^2 - 4 * distance)) / -2
+  defp hold_time(race_time, distance, sign) do
+    (-race_time + sign * (race_time ** 2 - 4 * distance) ** 0.5) / -2
   end
-
-  defp breaks_record?(%{distance: distance}, record), do: distance > record
 end
