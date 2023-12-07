@@ -56,15 +56,10 @@ defmodule Solutions.Day7 do
   defp type_rank(cards, wild_jokers \\ false) do
     cards = if wild_jokers and "J" in cards, do: best_joker_cards(cards), else: cards
 
-    case cards |> Enum.frequencies() |> Map.values() |> Enum.sort() |> Enum.reverse() do
-      [5] -> 6
-      [4 | _] -> 5
-      [3, 2] -> 4
-      [3 | _] -> 3
-      [2, 2 | _] -> 2
-      [2 | _] -> 1
-      _ -> 0
-    end
+    cards
+    |> Enum.frequencies()
+    |> Map.values()
+    |> Enum.sort(:desc)
   end
 
   defp best_joker_cards(cards) do
