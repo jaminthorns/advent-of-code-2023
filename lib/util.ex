@@ -10,4 +10,6 @@ defmodule Util do
   def lcm(numbers) when is_list(numbers), do: Enum.reduce(numbers, &lcm/2)
   def lcm(0, 0), do: 0
   def lcm(a, b), do: div(a * b, gcd(a, b))
+
+  def same?(list) when is_list(list), do: list |> Enum.uniq() |> length() <= 1
 end
