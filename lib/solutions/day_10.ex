@@ -83,11 +83,10 @@ defmodule Solutions.Day10 do
   def solve_part_2(input) do
     grid = grid(input)
     loop = loop(grid)
-    inside_edge = inside_edge(loop, grid)
+    inside_edge = inside_edge(loop)
 
     MapSet.new(inside_edge)
     |> fill(MapSet.new(loop))
-    |> tap(&draw(grid, loop, &1))
     |> MapSet.size()
   end
 
@@ -135,12 +134,17 @@ defmodule Solutions.Day10 do
   defp connections("S", {x, y}), do: [{x - 1, y}, {x + 1, y}, {x, y - 1}, {x, y + 1}]
   defp connections(_, _), do: []
 
-  defp inside_edge(loop, grid) do
-    linked_loop = loop |> Enum.drop(1) |> Enum.zip(loop)
+  defp inside_edge(loop) do
+    linked_loop = Enum.zip([loop, Enum.drop(loop, 1), Enum.drop(loop, 2)])
 
     turns =
       linked_loop
-      |> Enum.map(fn {current, previous} -> turn_direction(previous, current, grid) end)
+      |> Enum.map(fn {prev, curr, next} ->
+        from_direction = cardinal_direction(prev, curr)
+        to_direction = cardinal_direction(curr, next)
+
+        relative_direction(from_direction, to_direction)
+      end)
       |> Enum.reject(&is_nil/1)
 
     directionality =
@@ -149,23 +153,15 @@ defmodule Solutions.Day10 do
       |> Enum.max_by(&elem(&1, 1))
       |> elem(0)
 
-    linked_loop
-    |> Enum.map(fn {next, current} ->
-      direction = cardinal_direction(current, next)
-      direction = rotate_relative(direction, directionality)
+    for {prev, curr, next} <- linked_loop,
+        {from, to} <- [{prev, curr}, {curr, next}] do
+      path_direction = cardinal_direction(from, to)
+      neighbor_direction = rotate_relative(path_direction, directionality)
 
-      shift_cardinal(current, direction)
-    end)
+      shift_cardinal(curr, neighbor_direction)
+    end
     |> Enum.reject(&(&1 in loop))
     |> Enum.uniq()
-  end
-
-  defp turn_direction(previous, current, grid) do
-    next = next(previous, current, grid)
-    from_direction = cardinal_direction(previous, current)
-    to_direction = cardinal_direction(current, next)
-
-    relative_direction(from_direction, to_direction)
   end
 
   defp fill(seen, border) do
@@ -231,7 +227,7 @@ defmodule Solutions.Day10 do
     |> Map.get(:to)
   end
 
-  defp draw(grid, loop, enclosed) do
+  def draw(grid, loop, enclosed) do
     IO.write("\n")
 
     {max_x, max_y} = grid |> Map.keys() |> Enum.max()
@@ -239,9 +235,9 @@ defmodule Solutions.Day10 do
     for y <- 0..max_y, x <- 0..max_x do
       char =
         cond do
-          {x, y} in enclosed -> "█"
           {x, y} in loop -> grid |> Map.get({x, y}) |> draw_pipe()
-          true -> " "
+          {x, y} in enclosed -> "█"
+          true -> "░"
         end
 
       IO.write(char)
